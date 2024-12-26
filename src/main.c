@@ -159,7 +159,6 @@ vertex *addNode(vertex *root, Node *node_p) {
     else if (node_p->data.house_number > (*p)->data.house_number)
       p = &((*p)->right);
     else {
-      // (*p)->next = node_p;
       break;
     }
   }
@@ -249,9 +248,6 @@ int menuLoop(Queue database, Node **database_frames, Database_settings param) {
   Queue keys;
   int amount_keys = 0;
 
-  // Node **key_frames = NULL;
-  // int cur_fr_idx = 0;
-
   vertex *root = NULL;
   vertex *found = NULL;
   int num_to_found = 0;
@@ -307,18 +303,6 @@ int menuLoop(Queue database, Node **database_frames, Database_settings param) {
                              ->data);
           amount_keys++;
 
-          //
-          // if (amount_keys % param.database_records_to_show) {
-          //     cur_fr_idx =
-          //         amount_keys / param.database_records_to_show - 1;
-          //     key_frames = realloc(key_frames,
-          //                          sizeof(Node *) * cur_fr_idx +
-          //                          1);
-
-          //     key_frames[cur_fr_idx] = keys.tail;
-          // }
-          //
-
           if (first_key_entry + amount_keys == param.database_size) break;
 
           mstrcpy(year_str,
@@ -328,9 +312,6 @@ int menuLoop(Queue database, Node **database_frames, Database_settings param) {
         }
 
         showFrame(&keys.head, amount_keys, 0);
-
-        // showAsFrame(key_frames, param);
-        // free(key_frames);
 
         getchar();
         break;
@@ -351,9 +332,7 @@ int menuLoop(Queue database, Node **database_frames, Database_settings param) {
                         sizeof(keys.head->data.street_name));
 
         digitalSort(&keys, KDI);
-        // showFrame(&keys.head, amount_keys, 0);
 
-        // Пока что ещё нет корректного поля next
         for (p = keys.head; p != NULL; p = p->next) {
           root = addNode(root, p);
         }
@@ -373,9 +352,6 @@ int menuLoop(Queue database, Node **database_frames, Database_settings param) {
         printDData(found->data);
 
         root = A2(root, 0, amount_keys - 1);
-
-        // freemem(root);
-        // root = NULL;
 
         getchar();
         break;
