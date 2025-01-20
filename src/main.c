@@ -24,39 +24,11 @@ typedef struct Vertex {
     Node *next;
 } vertex;
 
-void digitalSort(Queue *S, byte *KDI);
-
-void printData(Tdata data);
-void printDData(Record data);
-void showFrame(Node **frame, int size, int idx);
-void showAsFrame(Node **frame, Database_settings param);
-
-void showMenu();
-int menuLoop(Queue database, Node **frames, Database_settings param);
-
-int readKey(char *key);
-void readFile(Queue *database, Node **frame_begin, Database_settings param);
 void initParam(Database_settings *param, int database_size,
                int database_records_to_show, int count_of_frames,
                FILE *file_descriptor);
-
-void setattr(struct termios *attr, int show_cursor);
-
-void detourLTR(vertex *p) {
-    if (p != NULL) {
-        detourLTR(p->left);
-        printDData(p->data);
-        detourLTR(p->right);
-    }
-}
-
-void freemem(vertex *root) {
-    if (root != NULL) {
-        freemem(root->left);
-        freemem(root->right);
-        free(root);
-    }
-}
+void readFile(Queue *database, Node **frame_begin, Database_settings param);
+int menuLoop(Queue database, Node **frames, Database_settings param);
 
 int main() {
     char *filename = "testBase4.dat";
@@ -83,6 +55,35 @@ int main() {
     destroy(&database);
     fclose(file);
     return EXIT_SUCCESS;
+}
+
+void digitalSort(Queue *S, byte *KDI);
+
+void printData(Tdata data);
+void printDData(Record data);
+void showFrame(Node **frame, int size, int idx);
+void showAsFrame(Node **frame, Database_settings param);
+
+void showMenu();
+
+int readKey(char *key);
+
+void setattr(struct termios *attr, int show_cursor);
+
+void detourLTR(vertex *p) {
+    if (p != NULL) {
+        detourLTR(p->left);
+        printDData(p->data);
+        detourLTR(p->right);
+    }
+}
+
+void freemem(vertex *root) {
+    if (root != NULL) {
+        freemem(root->left);
+        freemem(root->right);
+        free(root);
+    }
 }
 
 char *findYear(char *date, char *sep) {
@@ -159,7 +160,6 @@ vertex *addNode(vertex *root, Node *node_p) {
         else if (node_p->data.house_number > (*p)->data.house_number)
             p = &((*p)->right);
         else {
-            break;
         }
     }
     if (*p == NULL) {
