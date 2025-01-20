@@ -247,6 +247,61 @@ void EndingOfProgram(struct termios old, Queue *keys, Queue *sortedBase,
     destroy(sortedBase);
 }
 
+int searchData(struct termios old, struct termios cur, Node **sortedBase_array,
+               int *sortedBase_idx_array, Database_settings param,
+               int *amount_keys, Queue *keys) {
+    int key_size = 3;
+    char key_str[key_size];
+    for (int i = 0; i < key_size; ++i) {
+        key_str[i] = '\0';
+    }
+    int first_key_entry = 0;
+    char year_str[10];
+
+    system("clear");
+
+    setattr(&old, 1);
+    while (readKey(key_str));
+    setattr(&cur, 0);
+
+    first_key_entry =
+        binarySearch(sortedBase_array, sortedBase_idx_array,
+                     convertStrToInt(key_str), param.database_size);
+
+    if (first_key_entry == -1) {
+        fprintf(stderr, "Элемент не найден\n");
+        getchar();
+        return 1;
+    }
+
+    if ((*amount_keys)) destroy(keys);
+    init(keys);
+    (*amount_keys) = 0;
+
+    mstrcpy(year_str, sortedBase_array[sortedBase_idx_array[first_key_entry]]
+                          ->data.date_of_move_in);
+
+    while (convertStrToInt(findYear(year_str, "- ")) ==
+           convertStrToInt(key_str)) {
+        enqueue(keys, sortedBase_array[sortedBase_idx_array[first_key_entry +
+                                                            (*amount_keys)]]
+                          ->data);
+        (*amount_keys)++;
+
+        if (first_key_entry + (*amount_keys) == param.database_size) break;
+
+        mstrcpy(year_str,
+                sortedBase_array[sortedBase_idx_array[first_key_entry +
+                                                      (*amount_keys)]]
+                    ->data.date_of_move_in);
+    }
+
+    showFrame(&(*keys).head, (*amount_keys), 0);
+
+    getchar();
+    return 0;
+}
+
 int menuLoop(Queue database, Node **database_frames, Database_settings param) {
     struct termios cur, old;
     cur = setNewTerminalSettings(&old);
@@ -265,14 +320,6 @@ int menuLoop(Queue database, Node **database_frames, Database_settings param) {
                                     param);
 
     char action;
-
-    int key_size = 3;
-    char key_str[key_size];
-    for (int i = 0; i < key_size; ++i) {
-        key_str[i] = '\0';
-    }
-    int first_key_entry = 0;
-    char year_str[10];
 
     Queue keys;
     int amount_keys = 0;
@@ -301,52 +348,9 @@ int menuLoop(Queue database, Node **database_frames, Database_settings param) {
                 break;
 
             case '4':
-                system("clear");
-
-                setattr(&old, 1);
-                while (readKey(key_str));
-                setattr(&cur, 0);
-
-                first_key_entry =
-                    binarySearch(sortedBase_array, sortedBase_idx_array,
-                                 convertStrToInt(key_str), param.database_size);
-
-                if (first_key_entry == -1) {
-                    fprintf(stderr, "Элемент не найден\n");
-                    getchar();
+                if (searchData(old, cur, sortedBase_array, sortedBase_idx_array,
+                               param, &amount_keys, &keys))
                     break;
-                }
-
-                if (amount_keys) destroy(&keys);
-                init(&keys);
-                amount_keys = 0;
-
-                mstrcpy(year_str,
-                        sortedBase_array[sortedBase_idx_array[first_key_entry]]
-                            ->data.date_of_move_in);
-
-                while (convertStrToInt(findYear(year_str, "- ")) ==
-                       convertStrToInt(key_str)) {
-                    enqueue(
-                        &keys,
-                        sortedBase_array[sortedBase_idx_array[first_key_entry +
-                                                              amount_keys]]
-                            ->data);
-                    amount_keys++;
-
-                    if (first_key_entry + amount_keys == param.database_size)
-                        break;
-
-                    mstrcpy(
-                        year_str,
-                        sortedBase_array[sortedBase_idx_array[first_key_entry +
-                                                              amount_keys]]
-                            ->data.date_of_move_in);
-                }
-
-                showFrame(&keys.head, amount_keys, 0);
-
-                getchar();
                 break;
 
             case '5':
@@ -407,8 +411,8 @@ int readKey(char *key) {
             return EXIT_SUCCESS;
         }
     }
-    clearBuf();
 
+    clearBuf();
     return EXIT_SUCCESS;
 }
 
