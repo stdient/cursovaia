@@ -239,6 +239,14 @@ void splitIntoFramesAndBuildIdxArray(Queue *sortedBase, Node **sortedBase_frame,
     }
 }
 
+void EndingOfProgram(struct termios old, Queue *keys, Queue *sortedBase,
+                     int amount_keys) {
+    setattr(&old, 1);
+    system("clear");
+    if (amount_keys) destroy(keys);
+    destroy(sortedBase);
+}
+
 int menuLoop(Queue database, Node **database_frames, Database_settings param) {
     struct termios cur, old;
     cur = setNewTerminalSettings(&old);
@@ -382,10 +390,7 @@ int menuLoop(Queue database, Node **database_frames, Database_settings param) {
                 break;
 
             case '0':
-                setattr(&old, 1);
-                system("clear");
-                if (amount_keys) destroy(&keys);
-                destroy(&sortedBase);
+                EndingOfProgram(old, &keys, &sortedBase, amount_keys);
                 return EXIT_SUCCESS;
                 break;
         }
@@ -425,6 +430,16 @@ void initParam(Database_settings *param, int database_size,
     (*param).file_descriptor = file_descriptor;
 }
 
+void copyStringInBuffer(Tdata buffer1, Record *buffer2) {
+    char *citizen_full_name = convertStr(buffer1.citizen_full_name);
+    mstrcpy((*buffer2).citizen_full_name, citizen_full_name);
+    free(citizen_full_name);
+
+    char *street_name = convertStr(buffer1.street_name);
+    mstrcpy((*buffer2).street_name, street_name);
+    free(street_name);
+}
+
 void readFile(Queue *database, Node **frame_begin, Database_settings param) {
     Tdata buffer1;
     Record buffer2;
@@ -433,13 +448,7 @@ void readFile(Queue *database, Node **frame_begin, Database_settings param) {
     for (int i = 0; i < param.database_size; ++i) {
         fread(&buffer1, sizeof(buffer1), 1, param.file_descriptor);
 
-        char *citizen_full_name = convertStr(buffer1.citizen_full_name);
-        mstrcpy(buffer2.citizen_full_name, citizen_full_name);
-        free(citizen_full_name);
-
-        char *street_name = convertStr(buffer1.street_name);
-        mstrcpy(buffer2.street_name, street_name);
-        free(street_name);
+        copyStringInBuffer(buffer1, &buffer2);
 
         buffer2.house_number = buffer1.house_number;
         buffer2.apartment_number = buffer1.apartment_number;
