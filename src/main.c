@@ -197,33 +197,36 @@ void clearBuf() {
     while ((ch = getchar()) != '\n' && ch != EOF);
 }
 
-int menuLoop(Queue database, Node **database_frames, Database_settings param) {
-    struct termios cur, old;
+struct termios setNewTerminalSettings(struct termios *old) {
+    struct termios cur;
     tcgetattr(STDIN_FILENO, &cur);
-    old = cur;
+    (*old) = cur;
     cur.c_lflag &= ~(ISIG | ICANON | ECHO);
     cur.c_cc[VMIN] = 1;
     cur.c_cc[VTIME] = 0;
     setattr(&cur, 0);
 
-    Queue sortedBase;
-    init(&sortedBase);
-    byte KDI[sizeof(Record)] = {
-        113, 112, 111, 110, 109, 108, 107, 106, 105, 104, 64, 65, 66, 67, 68,
-        69,  70,  71,  72,  73,  74,  75,  76,  77,  78,  79, 80, 81, 82, 83,
-    };
+    return cur;
+}
 
+Queue copyQueueAndSort(Queue database, byte *KDI) {
+    Queue sortedBase;
+
+    init(&sortedBase);
     for (Node *p = database.head; p != NULL; p = p->next) {
         enqueue(&sortedBase, p->data);
     }
     digitalSort(&sortedBase, KDI);
 
-    Node *sortedBase_frame[param.count_of_frames];
-    Node *p = sortedBase.head;
-    int frame_idx = 0;
+    return sortedBase;
+}
 
-    Node *sortedBase_array[param.database_size];
-    int sortedBase_idx_array[param.database_size];
+void splitIntoFramesAndBuildIdxArray(Queue *sortedBase, Node **sortedBase_frame,
+                                     Node **sortedBase_array,
+                                     int *sortedBase_idx_array,
+                                     Database_settings param) {
+    Node *p = (*sortedBase).head;
+    int frame_idx = 0;
 
     for (int i = 0; i < param.database_size; ++i) {
         sortedBase_idx_array[i] = i;
@@ -234,6 +237,24 @@ int menuLoop(Queue database, Node **database_frames, Database_settings param) {
 
         p = p->next;
     }
+}
+
+int menuLoop(Queue database, Node **database_frames, Database_settings param) {
+    struct termios cur, old;
+    cur = setNewTerminalSettings(&old);
+
+    byte KDI[sizeof(Record)] = {
+        113, 112, 111, 110, 109, 108, 107, 106, 105, 104, 64, 65, 66, 67, 68,
+        69,  70,  71,  72,  73,  74,  75,  76,  77,  78,  79, 80, 81, 82, 83,
+    };
+    Queue sortedBase = copyQueueAndSort(database, KDI);
+
+    Node *sortedBase_frame[param.count_of_frames];
+    Node *sortedBase_array[param.database_size];
+    int sortedBase_idx_array[param.database_size];
+    splitIntoFramesAndBuildIdxArray(&sortedBase, sortedBase_frame,
+                                    sortedBase_array, sortedBase_idx_array,
+                                    param);
 
     char action;
 
@@ -337,7 +358,7 @@ int menuLoop(Queue database, Node **database_frames, Database_settings param) {
 
                 digitalSort(&keys, KDI);
 
-                for (p = keys.head; p != NULL; p = p->next) {
+                for (Node *p = keys.head; p != NULL; p = p->next) {
                     root = addNode(root, p);
                 }
                 detourLTR(root);
