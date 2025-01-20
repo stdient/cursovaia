@@ -302,6 +302,52 @@ int searchData(struct termios old, struct termios cur, Node **sortedBase_array,
     return 0;
 }
 
+int buildTree(Queue *keys, int amount_keys, struct termios old,
+              struct termios cur, byte *KDI) {
+    vertex *root = NULL;
+    vertex *found = NULL;
+    int num_to_found = 0;
+
+    system("clear");
+
+    if (!amount_keys) {
+        printf("Сначала нужно выполнить поиск по ключу\n");
+        getchar();
+        return 1;
+    }
+
+    for (int i = 0; i < (int)sizeof(Record); ++i) {
+        KDI[i] = 0;
+    }
+    KDI[0] = (byte)(sizeof((*keys).head->data.citizen_full_name) +
+                    sizeof((*keys).head->data.street_name));
+
+    digitalSort(keys, KDI);
+
+    for (Node *p = (*keys).head; p != NULL; p = p->next) {
+        root = addNode(root, p);
+    }
+    detourLTR(root);
+
+    setattr(&old, 1);
+    scanf("%d", &num_to_found);
+    setattr(&cur, 0);
+    clearBuf();
+
+    found = findVertex(root, num_to_found);
+    if (found == NULL) {
+        printf("Такой вершины нет в дереве\n");
+        getchar();
+        return 1;
+    }
+    printDData(found->data);
+
+    root = A2(root, 0, amount_keys - 1);
+
+    getchar();
+    return 0;
+}
+
 int menuLoop(Queue database, Node **database_frames, Database_settings param) {
     struct termios cur, old;
     cur = setNewTerminalSettings(&old);
@@ -323,10 +369,6 @@ int menuLoop(Queue database, Node **database_frames, Database_settings param) {
 
     Queue keys;
     int amount_keys = 0;
-
-    vertex *root = NULL;
-    vertex *found = NULL;
-    int num_to_found = 0;
 
     while (1) {
         showMenu();
@@ -354,43 +396,7 @@ int menuLoop(Queue database, Node **database_frames, Database_settings param) {
                 break;
 
             case '5':
-                system("clear");
-
-                if (!amount_keys) {
-                    printf("Сначала нужно выполнить поиск по ключу\n");
-                    getchar();
-                    break;
-                }
-
-                for (int i = 0; i < (int)sizeof(Record); ++i) {
-                    KDI[i] = 0;
-                }
-                KDI[0] = (byte)(sizeof(keys.head->data.citizen_full_name) +
-                                sizeof(keys.head->data.street_name));
-
-                digitalSort(&keys, KDI);
-
-                for (Node *p = keys.head; p != NULL; p = p->next) {
-                    root = addNode(root, p);
-                }
-                detourLTR(root);
-
-                setattr(&old, 1);
-                scanf("%d", &num_to_found);
-                setattr(&cur, 0);
-                clearBuf();
-
-                found = findVertex(root, num_to_found);
-                if (found == NULL) {
-                    printf("Такой вершины нет в дереве\n");
-                    getchar();
-                    break;
-                }
-                printDData(found->data);
-
-                root = A2(root, 0, amount_keys - 1);
-
-                getchar();
+                if (buildTree(&keys, amount_keys, old, cur, KDI)) break;
                 break;
 
             case '0':
