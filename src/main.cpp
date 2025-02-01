@@ -1,4 +1,3 @@
-#include <algorithm>
 #include <fstream>
 #include <iconv.h>
 #include <iomanip>
@@ -327,14 +326,50 @@ double find_symbols_sum(std::vector<symbol> symbols, double (*function)(std::vec
     return sum;
 }
 
+void swap(symbol &a, symbol &b)
+{
+    symbol t = a;
+    a = b;
+    b = t;
+}
+
+void sort(std::vector<symbol> &arr, int L, int R)
+{
+    int mid = floor((double)(L + R) / 2);
+    symbol support_element = arr[mid];
+    int idx_current_left = L, idx_current_right = R;
+
+    while (idx_current_left <= idx_current_right)
+    {
+        while (arr[idx_current_left].value < support_element.value)
+        {
+            idx_current_left++;
+        }
+        while (arr[idx_current_right].value > support_element.value)
+        {
+            idx_current_right--;
+        }
+
+        if (idx_current_left <= idx_current_right)
+        {
+            swap(arr[idx_current_left], arr[idx_current_right]);
+            idx_current_left++;
+            idx_current_right--;
+        }
+    }
+
+    if (idx_current_left < R)
+        sort(arr, idx_current_left, R);
+    if (L < idx_current_right)
+        sort(arr, L, idx_current_right);
+}
+
 void task(std::vector<symbol> &symbols)
 {
     for (size_t i = 0; i < symbols.size(); ++i)
         symbols[i].reset();
 
-    std::sort(symbols.begin(), symbols.end(), [](const symbol &a, const symbol &b) { return a.value < b.value; });
-
-    // showTable1(symbols);
+    sort(symbols, 0, symbols.size() - 1);
 
     gilbert_mur(symbols);
     showTable1(symbols);
