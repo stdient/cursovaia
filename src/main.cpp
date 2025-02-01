@@ -84,80 +84,46 @@ std::string convert_alphabet(std::string alphabet_utf8)
     return std::string(output.data(), outbuf - output.data());
 }
 
-std::vector<symbol> find_probabilities(std::string filename, int filesize)
+std::string convert(std::string text, std::string from_code, std::string to_code)
 {
-    std::ifstream file(filename);
-    std::vector<symbol> symbols;
-    bool symbol_found;
-    char ch;
-    symbol temp;
-
-    if (file.is_open())
+    iconv_t cd = iconv_open(to_code.c_str(), from_code.c_str());
+    if (cd == (iconv_t)-1)
     {
-        while (file.get(ch))
-        {
-            symbol_found = 0;
-            for (size_t i = 0; i < symbols.size(); ++i)
-            {
-                if (symbols[i].value == ch)
-                {
-                    symbol_found = 1;
-                    symbols[i].amount_reps++;
-                    break;
-                }
-            }
-            if (!symbol_found)
-            {
-                temp.value = ch;
-                temp.amount_reps = 1;
-                symbols.push_back(temp);
-            }
-        }
-        file.close();
+        throw std::runtime_error("iconv open failed");
     }
 
-    double accurate = 1000.0;
-    for (size_t i = 0; i < symbols.size(); ++i)
+    size_t inbytesleft = text.size();
+    size_t outbytesleft = inbytesleft;
+    std::vector<char> output(outbytesleft);
+
+    char *inbuf = &text[0];
+    char *outbuf = output.data();
+
+    if (iconv(cd, &inbuf, &inbytesleft, &outbuf, &outbytesleft) == (size_t)-1)
     {
-        symbols[i].probability = std::round(symbols[i].amount_reps / (double)filesize * accurate) / accurate;
+        throw std::runtime_error("convert failed");
     }
 
-    return symbols;
+    iconv_close(cd);
+
+    return std::string(output.data(), outbuf - output.data());
 }
 
-std::vector<symbol> find_probabilities(std::string text_win1251)
+std::string convert(Record record, std::string from_code, std::string to_code)
 {
-    std::vector<symbol> symbols;
-    bool symbol_found;
-    symbol temp;
+    std::string result;
+    result = convert(record.citizen_full_name, from_code, to_code);
+    result += ' ';
+    result += convert(record.street_name, from_code, to_code);
+    result += ' ';
+    result += convert(std::to_string(record.house_number), from_code, to_code);
+    result += ' ';
+    result += convert(std::to_string(record.apartment_number), from_code, to_code);
+    result += ' ';
+    result += convert(record.date_of_move_in, from_code, to_code);
+    result += ' ';
 
-    for (auto sym : text_win1251)
-    {
-        symbol_found = 0;
-        for (size_t i = 0; i < symbols.size(); ++i)
-        {
-            if (symbols[i].value == sym)
-            {
-                symbol_found = 1;
-                symbols[i].amount_reps++;
-                break;
-            }
-        }
-        if (!symbol_found)
-        {
-            temp.value = sym;
-            temp.amount_reps = 1;
-            symbols.push_back(temp);
-        }
-    }
-
-    double accurate = 1000.0;
-    for (size_t i = 0; i < symbols.size(); ++i)
-    {
-        symbols[i].probability = std::round(symbols[i].amount_reps / (double)text_win1251.size() * accurate) / accurate;
-    }
-
-    return symbols;
+    return result;
 }
 
 void record_converted_values(std::vector<symbol> &symbols)
@@ -188,9 +154,52 @@ void record_converted_values(std::vector<symbol> &symbols)
     iconv_close(cd);
 }
 
+std::vector<symbol> find_probabilities(std::string filename)
+{
+    std::ifstream file(filename);
+    std::vector<symbol> symbols;
+    bool symbol_found;
+    char ch;
+    symbol temp;
+    int filesize = 0;
+
+    if (file.is_open())
+    {
+        while (file.get(ch))
+        {
+            symbol_found = 0;
+            for (size_t i = 0; i < symbols.size(); ++i)
+            {
+                if (symbols[i].value == ch)
+                {
+                    symbol_found = 1;
+                    symbols[i].amount_reps++;
+                    break;
+                }
+            }
+            if (!symbol_found)
+            {
+                temp.value = ch;
+                temp.amount_reps = 1;
+                symbols.push_back(temp);
+            }
+            filesize++;
+        }
+        file.close();
+    }
+
+    double accurate = 100000.0;
+    for (size_t i = 0; i < symbols.size(); ++i)
+    {
+        symbols[i].probability = std::round(symbols[i].amount_reps / (double)filesize * accurate) / accurate;
+    }
+
+    return symbols;
+}
+
 bool isRusLetter(symbol symbol)
 {
-    std::string unacceptable_values = "?!,.-; ";
+    std::string unacceptable_values = "?!,.-; 1234567890\n";
 
     for (auto sym : unacceptable_values)
     {
@@ -220,9 +229,12 @@ void showTable1(std::vector<symbol> symbols)
         else
             shift = 7;
 
-        std::cout << '|' << std::setw(shift) << symbols[i].converted_value;
+        if (symbols[i].converted_value[0] == '\n')
+            std::cout << '|' << std::setw(shift) << "nls";
+        else
+            std::cout << '|' << std::setw(shift) << symbols[i].converted_value;
+
         std::cout << '|' << std::setw(19) << symbols[i].probability;
-        // std::cout << '|' << std::setw(25) << symbols[i].cumulative_probability;
         std::cout << '|' << std::setw(14 - symbols[i].code_word.size());
         for (auto digit : symbols[i].code_word)
         {
@@ -315,87 +327,6 @@ double find_symbols_sum(std::vector<symbol> symbols, double (*function)(std::vec
     return sum;
 }
 
-std::string convert(std::string text, std::string from_code, std::string to_code)
-{
-    iconv_t cd = iconv_open(to_code.c_str(), from_code.c_str());
-    if (cd == (iconv_t)-1)
-    {
-        throw std::runtime_error("iconv open failed");
-    }
-
-    size_t inbytesleft = text.size();
-    size_t outbytesleft = inbytesleft;
-    std::vector<char> output(outbytesleft);
-
-    char *inbuf = &text[0];
-    char *outbuf = output.data();
-
-    if (iconv(cd, &inbuf, &inbytesleft, &outbuf, &outbytesleft) == (size_t)-1)
-    {
-        throw std::runtime_error("convert failed");
-    }
-
-    iconv_close(cd);
-
-    return std::string(output.data(), outbuf - output.data());
-}
-
-void preparing_for_encoding(std::vector<symbol> &symbols, std::string text)
-{
-    symbols = find_probabilities(text);
-
-    for (size_t i = 0; i < symbols.size(); ++i)
-        symbols[i].reset();
-
-    std::sort(symbols.begin(), symbols.end(), [](const symbol &a, const symbol &b) { return a.value < b.value; });
-
-    record_converted_values(symbols);
-}
-
-size_t show_encrypted_text(std::vector<symbol> &symbols, std::string text)
-{
-    size_t code_size = 0;
-    for (auto letter : text)
-    {
-        for (auto sym : symbols)
-        {
-            if (letter == sym.value)
-            {
-                for (auto digit : sym.code_word)
-                {
-                    std::cout << digit;
-                    code_size++;
-                }
-                break;
-            }
-        }
-    }
-    return code_size;
-}
-
-void text_encoding()
-{
-    std::string text =
-        "А ещё предприниматели в сети интернет призывают нас к новым свершениям, которые, в свою очередь, дол";
-    std::string text_win1251 = convert(text, "UTF8", "WINDOWS-1251");
-
-    std::cout << std::endl << "Исходный текст:" << std::endl;
-    std::cout << text << std::endl;
-
-    std::cout << std::endl << "Закодированный текст:" << std::endl;
-    std::vector<symbol> text_symbols;
-    preparing_for_encoding(text_symbols, text_win1251);
-
-    gilbert_mur(text_symbols);
-
-    size_t encrypted_sequence_length = show_encrypted_text(text_symbols, text_win1251);
-    std::cout << std::endl << std::endl;
-
-    std::cout << "Длина закодированной последовательности: " << encrypted_sequence_length << std::endl << std::endl;
-    std::cout << "Коэффициент сжатия данных: " << encrypted_sequence_length / (double)(text_win1251.size() * 8)
-              << std::endl;
-}
-
 void task(std::vector<symbol> &symbols)
 {
     for (size_t i = 0; i < symbols.size(); ++i)
@@ -403,16 +334,15 @@ void task(std::vector<symbol> &symbols)
 
     std::sort(symbols.begin(), symbols.end(), [](const symbol &a, const symbol &b) { return a.value < b.value; });
 
-    gilbert_mur(symbols);
+    // showTable1(symbols);
 
+    gilbert_mur(symbols);
     showTable1(symbols);
 
     double craft = find_symbols_sum(symbols, craft_formula);
     double entropy = find_symbols_sum(symbols, entropy_formula);
     double average_len = find_symbols_sum(symbols, average_len_formula);
     showTable2(craft, entropy, average_len);
-
-    text_encoding();
 }
 
 void initParam(Database_settings *param, int database_size, int database_records_to_show, int count_of_frames,
@@ -919,16 +849,26 @@ int findInTree(Tree<Record> &tree, int amount_keys, struct termios old, struct t
 
 void encodeTheFile(Queue database)
 {
-    std::ofstream file("temp.txt");
+    system("clear");
+
+    std::string filename = "temp.txt";
+    std::ofstream file(filename);
     if (file.is_open())
     {
         for (Node *p = database.head; p != NULL; p = p->next)
         {
-            file << p->data << std::endl;
+            file << convert(p->data, "UTF8", "WINDOWS-1251") << std::endl;
         }
 
         file.close();
     }
+
+    std::vector<symbol> symbols = find_probabilities(filename);
+    record_converted_values(symbols);
+    task(symbols);
+
+    getchar();
+    remove(filename.c_str());
 }
 
 int menuLoop(Queue database, Node **database_frames, Database_settings param)
