@@ -1,8 +1,8 @@
-CC := clang
+CC := clang++
 FLAGS := -Wall -Wextra -lm
 
 SRC_DIR := .
-SRC := $(wildcard $(SRC_DIR)/*.c)
+SRC := $(wildcard $(SRC_DIR)/*.cpp)
 
 INC_DIR := ../include
 BIN_DIR := ../bin
