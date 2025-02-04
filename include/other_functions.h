@@ -24,15 +24,6 @@ typedef struct {
     FILE *file_descriptor;
 } Database_settings;
 
-typedef struct Vertex {
-    Record data;
-    struct Vertex *left;
-    struct Vertex *right;
-    int weight;
-
-    Node *next;
-} vertex;
-
 struct symbol {
     char value;
     std::string converted_value;
@@ -66,13 +57,13 @@ std::vector<symbol> find_probabilities(std::string filename);
 bool isRusLetter(symbol symbol);
 void printLine(int size);
 void showTable1(std::vector<symbol> symbols);
-void showTable2(double craft, double entropy, double average_len);
-void gilbert_mur(std::vector<symbol> &symbols);
 double craft_formula(std::vector<symbol> symbols, int i);
 double entropy_formula(std::vector<symbol> symbols, int i);
 double average_len_formula(std::vector<symbol> symbols, int i);
 double find_symbols_sum(std::vector<symbol> symbols,
                         double (*function)(std::vector<symbol> symbols, int i));
+void showTable2(double craft, double entropy, double average_len);
+void gilbert_mur(std::vector<symbol> &symbols);
 void task(std::vector<symbol> &symbols);
 
 void initParam(Database_settings *param, int database_size,

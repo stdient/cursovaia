@@ -615,14 +615,6 @@ void showAsFrame(Node **frame, Database_settings param) {
     }
 }
 
-void detourLTR(vertex *p) {
-    if (p != NULL) {
-        detourLTR(p->left);
-        printDData(p->data);
-        detourLTR(p->right);
-    }
-}
-
 char *findYear(char *date, std::string sep) {
     char *token = mstrtok(date, sep.c_str());
     for (int i = 0; i < 2; ++i) {
