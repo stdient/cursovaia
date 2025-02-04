@@ -17,14 +17,16 @@
 #include "../include/Queue.h"
 #include "../include/String.h"
 
-typedef struct {
+typedef struct
+{
     int database_size;
     int database_records_to_show;
     int count_of_frames;
     FILE *file_descriptor;
 } Database_settings;
 
-struct symbol {
+struct symbol
+{
     char value;
     std::string converted_value;
     size_t amount_reps;
@@ -35,22 +37,23 @@ struct symbol {
     size_t code_word_len;
     std::vector<bool> code_word;
 
-    symbol() {
+    symbol()
+    {
         amount_reps = 0;
         probability = 0;
         cumulative_probability = 0;
         code_word_len = 0;
     }
 
-    void reset() {
+    void reset()
+    {
         code_word.clear();
         code_word_len = 0;
     }
 };
 
 std::string convert_alphabet(std::string alphabet_utf8);
-std::string convert(std::string text, std::string from_code,
-                    std::string to_code);
+std::string convert(std::string text, std::string from_code, std::string to_code);
 std::string convert(Record record, std::string from_code, std::string to_code);
 void record_converted_values(std::vector<symbol> &symbols);
 std::vector<symbol> find_probabilities(std::string filename);
@@ -60,14 +63,12 @@ void showTable1(std::vector<symbol> symbols);
 double craft_formula(std::vector<symbol> symbols, int i);
 double entropy_formula(std::vector<symbol> symbols, int i);
 double average_len_formula(std::vector<symbol> symbols, int i);
-double find_symbols_sum(std::vector<symbol> symbols,
-                        double (*function)(std::vector<symbol> symbols, int i));
+double find_symbols_sum(std::vector<symbol> symbols, double (*function)(std::vector<symbol> symbols, int i));
 void showTable2(double craft, double entropy, double average_len);
 void gilbert_mur(std::vector<symbol> &symbols);
 void task(std::vector<symbol> &symbols);
 
-void initParam(Database_settings *param, int database_size,
-               int database_records_to_show, int count_of_frames,
+void initParam(Database_settings *param, int database_size, int database_records_to_show, int count_of_frames,
                FILE *file_descriptor);
 void readFile(Queue *database, Node **frame_begin, Database_settings param);
 int menuLoop(Queue database, Node **frames, Database_settings param);
@@ -89,20 +90,17 @@ void setattr(struct termios *attr, int show_cursor);
 void clearBuf();
 struct termios setNewTerminalSettings(struct termios *old);
 
-void splitIntoFramesAndBuildIdxArray(Queue *sortedBase, Node **sortedBase_frame,
-                                     Node **sortedBase_array,
-                                     int *sortedBase_idx_array,
-                                     Database_settings param);
-int searchData(struct termios old, struct termios cur, Node **sortedBase_array,
-               int *sortedBase_idx_array, Database_settings param,
-               int *amount_keys, Queue *keys);
-void EndingOfProgram(struct termios old, Queue *keys, Queue *sortedBase,
-                     int amount_keys);
+void splitIntoFramesAndBuildIdxArray(Queue *sortedBase, Node **sortedBase_frame, Node **sortedBase_array,
+                                     int *sortedBase_idx_array, Database_settings param);
+int searchData(struct termios old, struct termios cur, Node **sortedBase_array, int *sortedBase_idx_array,
+               Database_settings param, int *amount_keys, Queue *keys);
+void EndingOfProgram(struct termios old, Queue *keys, Queue *sortedBase, int amount_keys);
 
-template <typename T>
-class Tree {
-   private:
-    struct Vertex_ {
+template <typename T> class Tree
+{
+  private:
+    struct Vertex_
+    {
         Vertex_ *left;
         Vertex_ *right;
 
@@ -110,7 +108,8 @@ class Tree {
 
         Vertex_ *next;
 
-        Vertex_(T data) {
+        Vertex_(T data)
+        {
             this->data = data;
             left = nullptr;
             right = nullptr;
@@ -119,29 +118,42 @@ class Tree {
     };
     Vertex_ *root_;
 
-    void add_implementation_(T data, Vertex_ *&p) {
-        if (p == nullptr) {
+    void add_implementation_(T data, Vertex_ *&p)
+    {
+        if (p == nullptr)
+        {
             p = new Vertex_(data);
-        } else {
-            if (data < p->data) {
+        }
+        else
+        {
+            if (data < p->data)
+            {
                 add_implementation_(data, p->left);
-            } else if (data > p->data) {
+            }
+            else if (data > p->data)
+            {
                 add_implementation_(data, p->right);
-            } else {
+            }
+            else
+            {
                 add_implementation_(data, p->next);
             }
         }
     }
 
-    void A2(std::vector<Record> arr, size_t L, size_t R) {
-        if (L < R) {
+    void A2(std::vector<Record> arr, size_t L, size_t R)
+    {
+        if (L < R)
+        {
             int weight = 0;
             int sum = 0;
             size_t i;
 
-            for (i = L; i < R; ++i) weight += arr[i].house_number;
+            for (i = L; i < R; ++i)
+                weight += arr[i].house_number;
 
-            for (i = L; i < R; ++i) {
+            for (i = L; i < R; ++i)
+            {
                 if (sum < weight / 2 && sum + arr[i].house_number > weight / 2)
                     break;
                 sum += arr[i].house_number;
@@ -153,8 +165,10 @@ class Tree {
         }
     }
 
-    void detourLTR_(Vertex_ *&p) {
-        if (p != nullptr) {
+    void detourLTR_(Vertex_ *&p)
+    {
+        if (p != nullptr)
+        {
             detourLTR_(p->left);
             std::cout << p->data << std::endl;
             detourLTR_(p->next);
@@ -162,8 +176,10 @@ class Tree {
         }
     }
 
-    void destroy_(Vertex_ *p) {
-        if (p != nullptr) {
+    void destroy_(Vertex_ *p)
+    {
+        if (p != nullptr)
+        {
             destroy_(p->left);
             destroy_(p->right);
             destroy_(p->next);
@@ -171,16 +187,20 @@ class Tree {
         }
     }
 
-    void del_next_field_(Vertex_ *&p) {
+    void del_next_field_(Vertex_ *&p)
+    {
         Vertex_ **q = &p;
         q = &((*q)->next);
-        while ((*q)->next != nullptr) q = &((*q)->next);
+        while ((*q)->next != nullptr)
+            q = &((*q)->next);
         delete (*q);
         (*q) = nullptr;
     }
 
-    Vertex_ *find_implementation_(Vertex_ *p, int key) {
-        while (p != nullptr) {
+    Vertex_ *find_implementation_(Vertex_ *p, int key)
+    {
+        while (p != nullptr)
+        {
             if (key < p->data.house_number)
                 p = p->left;
             else if (key > p->data.house_number)
@@ -192,41 +212,63 @@ class Tree {
         return nullptr;
     }
 
-   public:
-    Tree() { root_ = nullptr; }
-    ~Tree() { destroy_(root_); }
+  public:
+    Tree()
+    {
+        root_ = nullptr;
+    }
+    ~Tree()
+    {
+        destroy_(root_);
+    }
 
-    bool isEmpty() { return root_ == nullptr ? true : false; }
+    bool isEmpty()
+    {
+        return root_ == nullptr ? true : false;
+    }
 
-    void addVertex(T data) { add_implementation_(data, root_); }
+    void addVertex(T data)
+    {
+        add_implementation_(data, root_);
+    }
 
-    void buildA2Tree(std::vector<Record> arr) { A2(arr, 0, arr.size() - 1); }
+    void buildA2Tree(std::vector<Record> arr)
+    {
+        A2(arr, 0, arr.size() - 1);
+    }
 
-    void printData(Vertex_ *p) {
-        if (p != nullptr) {
+    void printData(Vertex_ *p)
+    {
+        if (p != nullptr)
+        {
             std::cout << p->data << std::endl;
             printData(p->next);
         }
     }
 
-    void findVertex(int key) {
+    void findVertex(int key)
+    {
         Vertex_ *p = find_implementation_(root_, key);
-        if (p == nullptr) {
+        if (p == nullptr)
+        {
             std::cout << "Вершины нет в дереве";
             getchar();
-        } else {
-            std::cout << "По вашему запросу найдены следующие данные:"
-                      << std::endl;
+        }
+        else
+        {
+            std::cout << "По вашему запросу найдены следующие данные:" << std::endl;
             printData(p);
             getchar();
         }
     }
 
-    void del(T data) {
+    void del(T data)
+    {
         Vertex_ **p;
         p = &root_;
 
-        while (*p != nullptr) {
+        while (*p != nullptr)
+        {
             if (data < (*p)->data)
                 p = &((*p)->left);
             else if (data > (*p)->data)
@@ -235,28 +277,39 @@ class Tree {
                 break;
         }
 
-        if ((*p)->next != nullptr) {
+        if ((*p)->next != nullptr)
+        {
             del_next_field_(*p);
             return;
         }
 
-        if (*p != nullptr) {
+        if (*p != nullptr)
+        {
             Vertex_ *q;
             q = *p;
-            if (q->left == nullptr) {
+            if (q->left == nullptr)
+            {
                 *p = q->right;
-            } else if (q->right == nullptr) {
+            }
+            else if (q->right == nullptr)
+            {
                 *p = q->left;
-            } else {
+            }
+            else
+            {
                 Vertex_ *S, *r;
                 S = q;
                 r = q->left;
 
-                if (r->right == nullptr) {
+                if (r->right == nullptr)
+                {
                     r->right = q->right;
                     *p = r;
-                } else {
-                    while (r->right != nullptr) {
+                }
+                else
+                {
+                    while (r->right != nullptr)
+                    {
                         S = r;
                         r = r->right;
                     }
@@ -272,7 +325,8 @@ class Tree {
         }
     }
 
-    void display() {
+    void display()
+    {
         std::cout << "Содержимое дерева" << std::endl;
         detourLTR_(root_);
         std::cout << std::endl;

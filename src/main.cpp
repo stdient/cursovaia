@@ -1,10 +1,12 @@
 #include "../include/other_functions.h"
 
-int main() {
+int main()
+{
     std::string filename = "testBase4.dat";
     FILE *file = fopen(filename.c_str(), "rb");
 
-    if (!file) {
+    if (!file)
+    {
         perror(filename.c_str());
         return EXIT_FAILURE;
     }
@@ -14,8 +16,7 @@ int main() {
     Database_settings param;
     int database_size = 4000;
     int records_to_show = 20;
-    initParam(&param, database_size, records_to_show,
-              database_size / records_to_show - 1, file);
+    initParam(&param, database_size, records_to_show, database_size / records_to_show - 1, file);
 
     Node *frame_begin[param.count_of_frames];
     readFile(&database, frame_begin, param);
