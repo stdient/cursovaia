@@ -340,13 +340,7 @@ int buildTree(Queue &keys, int amount_keys, byte *KDI, Tree<Record> &tree)
     KDI[0] = (byte)(sizeof(keys.head->data.citizen_full_name) + sizeof(keys.head->data.street_name));
     digitalSort(&keys, KDI);
 
-    std::vector<Record> keys_array;
-    for (Node *p = keys.head; p != NULL; p = p->next)
-    {
-        keys_array.push_back(p->data);
-    }
-
-    tree.buildA2Tree(keys_array);
+    tree.buildA2Tree(keys);
 
     return 0;
 }

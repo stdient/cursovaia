@@ -105,6 +105,7 @@ template <typename T> class Tree
         Vertex_ *right;
 
         T data;
+        int weight;
 
         Vertex_ *next;
 
@@ -114,6 +115,7 @@ template <typename T> class Tree
             left = nullptr;
             right = nullptr;
             next = nullptr;
+            weight = 0;
         }
     };
     Vertex_ *root_;
@@ -206,7 +208,10 @@ template <typename T> class Tree
             else if (key > p->data.house_number)
                 p = p->right;
             else
+            {
+                p->weight++;
                 return p;
+            }
         }
 
         return nullptr;
@@ -232,9 +237,9 @@ template <typename T> class Tree
         add_implementation_(data, root_);
     }
 
-    void buildA2Tree(std::vector<Record> arr)
+    void buildA2Tree(const Queue &keys)
     {
-        A2(arr, 0, arr.size() - 1);
+        // A2(arr, 0, arr.size() - 1);
     }
 
     void printData(Vertex_ *p)
