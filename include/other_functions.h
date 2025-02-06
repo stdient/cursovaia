@@ -143,27 +143,75 @@ template <typename T> class Tree
         }
     }
 
-    void A2(std::vector<Record> arr, size_t L, size_t R)
+    void add_implementation_(T data, Vertex_ *&p, int weight)
+    {
+        if (p == nullptr)
+        {
+            p = new Vertex_(data);
+            p->weight = weight;
+        }
+        else
+        {
+            if (data < p->data)
+            {
+                add_implementation_(data, p->left, weight);
+            }
+            else if (data > p->data)
+            {
+                add_implementation_(data, p->right, weight);
+            }
+            else
+            {
+                add_implementation_(data, p->next, weight);
+            }
+        }
+    }
+
+    std::vector<int> create_weights_array_(Queue keys)
+    {
+        std::vector<int> weights;
+
+        for (Node *p = keys.head; p != nullptr; p = p->next)
+        {
+            weights.push_back(rand() % 100 + 1);
+        }
+
+        return weights;
+    }
+
+    std::vector<Record> create_records_array_(Queue keys)
+    {
+        std::vector<Record> records;
+
+        for (Node *p = keys.head; p != nullptr; p = p->next)
+        {
+            records.push_back(p->data);
+        }
+
+        return records;
+    }
+
+    void A2(std::vector<Record> arr, size_t L, size_t R, std::vector<int> weights)
     {
         if (L < R)
         {
             int weight = 0;
             int sum = 0;
-            size_t i;
+            size_t i = L;
 
-            for (i = L; i < R; ++i)
-                weight += arr[i].house_number;
+            for (i = L; i <= R; ++i)
+                weight += weights[i];
 
-            for (i = L; i < R; ++i)
+            for (i = L; i <= R; ++i)
             {
-                if (sum < weight / 2 && sum + arr[i].house_number > weight / 2)
+                if (sum < weight / 2 && sum + weights[i] >= weight / 2)
                     break;
-                sum += arr[i].house_number;
+                sum += weights[i];
             }
 
-            add_implementation_(arr[i], root_);
-            A2(arr, L, i - 1);
-            A2(arr, i + 1, R);
+            add_implementation_(arr[i], root_, weights[i]);
+            A2(arr, L, i - 1, weights);
+            A2(arr, i + 1, R, weights);
         }
     }
 
@@ -239,7 +287,9 @@ template <typename T> class Tree
 
     void buildA2Tree(const Queue &keys)
     {
-        // A2(arr, 0, arr.size() - 1);
+        std::vector<int> weights = create_weights_array_(keys);
+        std::vector<Record> keys_array = create_records_array_(keys);
+        A2(keys_array, 0, keys_array.size() - 1, weights);
     }
 
     void printData(Vertex_ *p)

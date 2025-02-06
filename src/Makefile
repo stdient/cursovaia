@@ -17,4 +17,4 @@ run:
 	$(BIN_DIR)/$(TARGET)
 
 val:
-	valgrind $(BIN_DIR)/$(TARGET)
+	valgrind --leak-check=full -s $(BIN_DIR)/$(TARGET)
