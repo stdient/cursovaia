@@ -632,12 +632,10 @@ void printDData(Record data)
 void showFrame(Node **frame, int size, int idx)
 {
     Node *p = frame[idx];
-    Record data;
     for (int i = 0; i < size; ++i)
     {
-        data = p->data;
-        printf("%4d | %s | %s | %4d | %4d | %s\n", i + (idx * size) + 1, data.citizen_full_name, data.street_name,
-               data.house_number, data.apartment_number, data.date_of_move_in);
+        printf("%4d |", i + (idx * size) + 1);
+        printDData(p->data);
         p = p->next;
     }
 }
